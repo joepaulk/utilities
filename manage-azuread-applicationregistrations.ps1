@@ -1,3 +1,6 @@
+# Introduction: This article is to overcome the limitations of AzureAD module which is used for managing azure ad application registrations.
+#  - The az cli module has limitations with managing deleted azure ad application registrations.
+#  - Reference url: https://docs.microsoft.com/en-us/graph/api/resources/application?view=graph-rest-1.0
 
 $displayName   = "jp-demo-to-delete"
 $identifierUri = "api://$displayName"
