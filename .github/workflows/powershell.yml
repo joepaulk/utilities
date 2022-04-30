@@ -13,8 +13,14 @@ on:
   push:
     branches: [ master ]
     
+# permission can be added at job level or workflow level    
 permissions:
   contents: read
+  id-token: write
+
+env:
+  BUCKET_NAME : "2-dev-jp-001"
+  AWS_REGION : "ap-southeast-2"
 
 jobs:
   build:
@@ -25,7 +31,18 @@ jobs:
     environment: dev
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Clone the current github repo
+        uses: actions/checkout@v3
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::891707123434:role/AAA-Github-Role-EC2FullAccess
+          role-session-name: samplerolesession
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Copy index.html to S3
+        run: |
+          aws s3 cp ./index.html s3://${{ env.BUCKET_NAME }}/
 
       - name: Run PSScriptAnalyzer
         uses: microsoft/psscriptanalyzer-action@2044ae068e37d0161fa2127de04c19633882f061
@@ -43,9 +60,3 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: results.sarif
-     
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '14'
-      - run: npm install -g bats
-      - run: bats -v
