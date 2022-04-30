@@ -26,8 +26,9 @@ jobs:
   build:
     permissions:
       contents: read # for actions/checkout to fetch code
+      id-token: write
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-    name: PSScriptAnalyzer
+    name: deploy-to-dev
     environment: dev
     runs-on: ubuntu-latest
     steps:
