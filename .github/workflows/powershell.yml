@@ -44,7 +44,7 @@ jobs:
       
       - name: Copy index.html to S3
         run: |
-          aws s3 cp ./index.html s3://${{ env.BUCKET_NAME }}/
+          aws s3 cp ./../../../index.html s3://${{ env.BUCKET_NAME }}/
 
       - name: Install Terraform CLI
         uses: hashicorp/setup-terraform@v2
