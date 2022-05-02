@@ -50,6 +50,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: check-aws-access
     steps:
+      - name: Clone the current github repo
+        uses: actions/checkout@v3
+      
       - name: Run PSScriptAnalyzer
         uses: microsoft/psscriptanalyzer-action@2044ae068e37d0161fa2127de04c19633882f061
         with:
