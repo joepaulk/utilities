@@ -13,22 +13,17 @@ on:
   push:
     branches: [ master ]
     
-# permission can be added at job level or workflow level    
-permissions:
-  contents: read
-  id-token: write
-
 env:
   BUCKET_NAME : "2-dev-jp-001"
   AWS_REGION : "ap-southeast-2"
 
 jobs:
-  build:
-    permissions:
+  check-aws-access:
+    permissions: # permission can be added at job level or workflow level    
       contents: read # for actions/checkout to fetch code
       id-token: write
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-    name: deploy-to-dev
+    name: check-aws-access
     environment: dev
     runs-on: ubuntu-latest
     steps:
@@ -41,10 +36,20 @@ jobs:
           role-to-assume: arn:aws:iam::891707123434:role/AAA-Github-Role-EC2FullAccess
           role-session-name: samplerolesession
           aws-region: ${{ env.AWS_REGION }}
+      
       - name: Copy index.html to S3
         run: |
           aws s3 cp ./index.html s3://${{ env.BUCKET_NAME }}/
-
+  
+  static-code-analysis:
+    permissions: # permission can be added at job level or workflow level    
+      contents: read
+      security-events: write
+    name: static-code-analysis
+    environment: dev
+    runs-on: ubuntu-latest
+    needs: check-aws-access
+    steps:
       - name: Run PSScriptAnalyzer
         uses: microsoft/psscriptanalyzer-action@2044ae068e37d0161fa2127de04c19633882f061
         with:
