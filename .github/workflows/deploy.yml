@@ -26,7 +26,6 @@ jobs:
     name: static-code-analysis
     environment: dev
     runs-on: ubuntu-latest
-    needs: check-aws-access
     steps:
       - name: Clone the current github repo
         uses: actions/checkout@v3
@@ -56,6 +55,7 @@ jobs:
     name: Deploy AWS Resources to Dev
     environment: dev
     runs-on: ubuntu-latest
+    needs: static-code-analysis
     defaults:
       run:
         working-directory: provision/aws/terraform-scripts
