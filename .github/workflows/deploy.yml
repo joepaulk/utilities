@@ -19,12 +19,41 @@ env:
   AWS_ROLE_ARN: arn:aws:iam::891707123434:role/AAA-Github-Role-EC2FullAccess
 
 jobs:
-  check-aws-access:
+  static-code-analysis:
+    permissions: # permission can be added at job level or workflow level    
+      contents: read
+      security-events: write
+    name: static-code-analysis
+    environment: dev
+    runs-on: ubuntu-latest
+    needs: check-aws-access
+    steps:
+      - name: Clone the current github repo
+        uses: actions/checkout@v3
+      
+      - name: Run PSScriptAnalyzer
+        uses: microsoft/psscriptanalyzer-action@2044ae068e37d0161fa2127de04c19633882f061
+        with:
+          # Check https://github.com/microsoft/action-psscriptanalyzer for more info about the options.
+          # The below set up runs PSScriptAnalyzer to your entire repository and runs some basic security rules.
+          path: .\
+          recurse: true 
+          # Include your own basic security rules. Removing this option will run all the rules 
+          includeRule: '"PSAvoidGlobalAliases", "PSAvoidUsingConvertToSecureStringWithPlainText"'
+          output: results.sarif
+      
+      # Upload the SARIF file generated in the previous step
+      - name: Upload SARIF results file
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: results.sarif
+          
+  deploy-aws-resources-dev:
     permissions: # permission can be added at job level or workflow level    
       contents: read # for actions/checkout to fetch code
       id-token: write
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-    name: check-aws-access
+    name: Deploy AWS Resources to Dev
     environment: dev
     runs-on: ubuntu-latest
     defaults:
@@ -70,31 +99,3 @@ jobs:
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         run: terraform apply -auto-approve
 
-  static-code-analysis:
-    permissions: # permission can be added at job level or workflow level    
-      contents: read
-      security-events: write
-    name: static-code-analysis
-    environment: dev
-    runs-on: ubuntu-latest
-    needs: check-aws-access
-    steps:
-      - name: Clone the current github repo
-        uses: actions/checkout@v3
-      
-      - name: Run PSScriptAnalyzer
-        uses: microsoft/psscriptanalyzer-action@2044ae068e37d0161fa2127de04c19633882f061
-        with:
-          # Check https://github.com/microsoft/action-psscriptanalyzer for more info about the options.
-          # The below set up runs PSScriptAnalyzer to your entire repository and runs some basic security rules.
-          path: .\
-          recurse: true 
-          # Include your own basic security rules. Removing this option will run all the rules 
-          includeRule: '"PSAvoidGlobalAliases", "PSAvoidUsingConvertToSecureStringWithPlainText"'
-          output: results.sarif
-      
-      # Upload the SARIF file generated in the previous step
-      - name: Upload SARIF results file
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: results.sarif
